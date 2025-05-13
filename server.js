@@ -70,8 +70,8 @@ let saveTimeout = null;
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production'
         ? [
-            process.env.CLIENT_URL || 'https://juego-memoria-cliente.onrender.com',
-            'https://juego-memoria-cliente-ug3h.onrender.com' // Añadido el nuevo dominio
+            process.env.CLIENT_URL || 'https://juego-memoria-cliente2.onrender.com/',
+            'https://juego-memoria-cliente2.onrender.com/' // Añadido el nuevo dominio
         ]
         : ['http://localhost:3000'],
     methods: ['GET', 'POST'],
@@ -732,10 +732,10 @@ function generateBoard() {
 
         // Crear 2 fichas ganadoras y 2 perdedoras para esta hilera
         for (let i = 0; i < 2; i++) {
-            rowTiles.push({ value: 15000, revealed: false });  // Ganadora
+            rowTiles.push({ value: 30000, revealed: false });  // Ganadora
         }
         for (let i = 0; i < 2; i++) {
-            rowTiles.push({ value: -15000, revealed: false }); // Perdedora
+            rowTiles.push({ value: -30000, revealed: false }); // Perdedora
         }
 
         // Mezclar las fichas dentro de esta hilera
@@ -843,7 +843,7 @@ function verifyAndFixGameState() {
         // Si la ficha no existe o tiene valores inválidos, corregirla
         if (!gameState.board[i] || gameState.board[i].value === undefined) {
             gameState.board[i] = { 
-                value: (Math.random() > 0.5 ? 15000 : -15000), 
+                value: (Math.random() > 0.5 ? 30000 : -30000), 
                 revealed: false 
             };
             fichasCorregidas++;
@@ -2032,10 +2032,10 @@ socket.on('unlockAllTables', async (_, callback) => {
         }
 
         // Asegurarse de que los valores de punto son precisamente los esperados
-        if (gameState.board[tileIndex].value !== 15000 && gameState.board[tileIndex].value !== -15000) {
+        if (gameState.board[tileIndex].value !== 30000 && gameState.board[tileIndex].value !== -30000) {
             console.error(`VALOR DE FICHA INCORRECTO: ${gameState.board[tileIndex].value}`);
             // Corregir el valor
-            gameState.board[tileIndex].value = Math.sign(gameState.board[tileIndex].value) * 15000;
+            gameState.board[tileIndex].value = Math.sign(gameState.board[tileIndex].value) * 30000;
         }
 
         // Obtener o inicializar selecciones del jugador
@@ -2093,7 +2093,7 @@ socket.on('unlockAllTables', async (_, callback) => {
         const tileValue = gameState.board[tileIndex].value;
 
         // Verificar si hay una discrepancia grande entre el puntaje del cliente y del servidor
-        if (currentScore !== undefined && Math.abs(currentScore - user.score) > 15000) {
+        if (currentScore !== undefined && Math.abs(currentScore - user.score) > 30000) {
             console.warn(`ADVERTENCIA: Posible inconsistencia en puntaje del cliente ${currentScore} vs servidor ${user.score}`);
         }
 
