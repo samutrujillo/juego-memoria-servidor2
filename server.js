@@ -36,7 +36,7 @@ let db = null;
 if (serviceAccount) {
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        databaseURL: process.env.FIREBASE_DATABASE_URL || "https://tu-proyecto-firebase.firebaseio.com"
+        databaseURL: process.env.FIREBASE_DATABASE_URL || "https://juego-memoria-tercero-default-rtdb.firebaseio.com"
     });
     db = admin.database();
     console.log('Firebase inicializado correctamente');
@@ -70,8 +70,8 @@ let saveTimeout = null;
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production'
         ? [
-            process.env.CLIENT_URL || 'https://juego-memoria-cliente2.onrender.com/',
-            'https://juego-memoria-cliente2.onrender.com/' // Añadido el nuevo dominio
+            process.env.CLIENT_URL || 'https://juego-memoria-cliente2.onrender.com',
+            'https://juego-memoria-cliente2.onrender.com' // Sin la barra al final
         ]
         : ['http://localhost:3000'],
     methods: ['GET', 'POST'],
@@ -138,18 +138,18 @@ setInterval(() => {
     }
 }, 10000); // Verificar cada 10 segundos
 
-// Datos de usuario (en una aplicación real, esto estaría en una base de datos)
+// Datos de usuario actualizados para el servidor 2 con nombres diferentes
 const users = [
-    { id: '1', username: 'Orion', password: '3498700', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '2', username: 'Andy', password: '2587411', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '3', username: 'Casio', password: '9632541', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '4', username: 'Pega', password: '7412589', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '5', username: 'Percy', password: '8523697', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '6', username: 'Nova', password: '1234567', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '7', username: 'Leo', password: '7654321', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '8', username: 'Ara', password: '1122334', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '9', username: 'Hydra', password: 'serpiente321', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
-    { id: '10', username: 'Lyra', password: 'arpa987', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '1', username: 'Zorro', password: 'astuto741', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '2', username: 'Tigre', password: 'feroz852', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '3', username: 'Aguila', password: 'vuela963', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '4', username: 'Lobo', password: 'aulla159', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '5', username: 'Pantera', password: 'negra753', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '6', username: 'Halcon', password: 'rapido426', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '7', username: 'Jaguar', password: 'selvaje817', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '8', username: 'Cobra', password: 'sigilosa294', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '9', username: 'Oso', password: 'fuerte685', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
+    { id: '10', username: 'Puma', password: 'montaña372', score: 60000, prevScore: 60000, isAdmin: false, isBlocked: false, isLockedDueToScore: false },
     { id: 'admin', username: 'admin', password: 'admin1998', score: 60000, prevScore: 60000, isAdmin: true, isBlocked: false, isLockedDueToScore: false }
 ];
 
@@ -224,7 +224,7 @@ function checkScoreLimit(user) {
     // Sólo bloquear si es jugador y tiene 23,000 puntos o menos
     if (user.score <= 23000 && !user.isAdmin) {
         console.log(`Usuario ${user.username} bloqueado por alcanzar o caer a ${user.score} puntos`);
-        
+
         // Solo modificar el estado si necesita cambiarse
         if (!user.isLockedDueToScore) {
             user.isLockedDueToScore = true;
@@ -249,13 +249,13 @@ function checkScoreLimit(user) {
             // Guardar estado después del bloqueo
             saveGameState();
         }
-        
+
         return true;
     } else if (user.score > 23000 && user.isLockedDueToScore) {
         // Si el puntaje supera 23,000 pero sigue bloqueado, desbloquearlo
         console.log(`Desbloqueando a ${user.username} porque su puntaje es ${user.score} > 23000`);
         user.isLockedDueToScore = false;
-        
+
         // Notificar al usuario
         const playerSocketId = gameState.players.find(p => p.id === user.id)?.socketId;
         if (playerSocketId) {
@@ -267,37 +267,37 @@ function checkScoreLimit(user) {
                 message: 'Tu puntaje ha superado los 23,000 puntos y tu cuenta ha sido desbloqueada.'
             });
         }
-        
+
         // Actualizar en Firebase
         if (db) {
             queueGameStateChange(`gameState/userScores/${user.id}/isLockedDueToScore`, false);
         }
-        
+
         // Guardar estado después del desbloqueo
         saveGameState();
-        
+
         return false;
     }
-    
+
     return user.isLockedDueToScore; // Mantener el estado actual si no hay cambios
 }
 
 // Función para verificar la integridad de los estados de bloqueo
 function verifyBlockingStates() {
     let inconsistenciasCorregidas = 0;
-    
+
     // Verificar cada jugador en la lista de usuarios
     for (const user of users) {
         if (user.isAdmin) continue; // Ignorar administradores
-        
+
         // La única condición válida para bloqueo automático es por puntaje <= 23000
         const shouldBeLockedDueToScore = user.score <= 23000;
-        
+
         if (user.isLockedDueToScore !== shouldBeLockedDueToScore) {
             console.log(`Corrigiendo inconsistencia de bloqueo por puntaje para ${user.username}: ${user.isLockedDueToScore} -> ${shouldBeLockedDueToScore}`);
             user.isLockedDueToScore = shouldBeLockedDueToScore;
             inconsistenciasCorregidas++;
-            
+
             // Notificar al usuario si está conectado
             const playerSocketId = gameState.players.find(p => p.id === user.id)?.socketId;
             if (playerSocketId) {
@@ -310,27 +310,27 @@ function verifyBlockingStates() {
                         message: 'Tu puntaje ha sido corregido y tu cuenta ha sido desbloqueada.'
                     });
                 }
-                
+
                 io.to(playerSocketId).emit('blockStatusChanged', {
                     isLockedDueToScore: shouldBeLockedDueToScore,
-                    message: shouldBeLockedDueToScore ? 
-                        'Tu cuenta ha sido bloqueada por alcanzar o caer a 23,000 puntos o menos.' : 
+                    message: shouldBeLockedDueToScore ?
+                        'Tu cuenta ha sido bloqueada por alcanzar o caer a 23,000 puntos o menos.' :
                         'Tu cuenta ha sido desbloqueada.'
                 });
             }
-            
+
             // Actualizar en Firebase
             if (db) {
                 queueGameStateChange(`gameState/userScores/${user.id}/isLockedDueToScore`, shouldBeLockedDueToScore);
             }
         }
     }
-    
+
     if (inconsistenciasCorregidas > 0) {
         console.log(`Se corrigieron ${inconsistenciasCorregidas} inconsistencias de bloqueo por puntaje`);
         saveGameState(); // Guardar cambios
     }
-    
+
     return inconsistenciasCorregidas;
 }
 
@@ -415,8 +415,8 @@ function checkTableLimit(userId) {
     if (!playerTableCount[userId]) {
         playerTableCount[userId] = 0;
     }
-    
-    // Si es mesa 5 y el jugador ha completado exactamente el máximo, permitir jugar
+
+    // Si es mesa 10 y el jugador ha completado exactamente el máximo, permitir jugar
     // para que pueda completar el ciclo
     if (globalTableNumber === 10 && playerTableCount[userId] === MAX_TABLES_PER_DAY) {
         return false; // No bloquear en este caso especial
@@ -469,7 +469,8 @@ async function saveGameState() {
                 prevScore: user.prevScore || 60000,
                 isBlocked: user.isBlocked || false,
                 isLockedDueToScore: user.isLockedDueToScore || false,
-                tablesPlayed: playerTableCount[user.id] || 0
+                tablesPlayed: playerTableCount[user.id] || 0,
+                username: user.username // Añadir el username para referencia
             };
             return obj;
         }, {}),
@@ -836,38 +837,38 @@ function initPlayerSelections(userId) {
 // Función para verificar y corregir problemas conocidos
 function verifyAndFixGameState() {
     console.log("Verificando integridad del estado del juego...");
-    
+
     // 1. Verificar que no haya fichas en estado inconsistente
     let fichasCorregidas = 0;
     for (let i = 0; i < gameState.board.length; i++) {
         // Si la ficha no existe o tiene valores inválidos, corregirla
         if (!gameState.board[i] || gameState.board[i].value === undefined) {
-            gameState.board[i] = { 
-                value: (Math.random() > 0.5 ? 30000 : -30000), 
-                revealed: false 
+            gameState.board[i] = {
+                value: (Math.random() > 0.5 ? 30000 : -30000),
+                revealed: false
             };
             fichasCorregidas++;
         }
     }
-    
+
     // 2. Verificar que el tablero tenga el balance correcto (8 positivas, 8 negativas)
     validateBoardIntegrity();
-    
+
     // 3. Verificar que los jugadores no tengan estados de bloqueo inconsistentes
     const inconsistenciasCorregidas = verifyBlockingStates();
-    
+
     // 4. Verificar que el contador de mesas esté en rango válido
     if (globalTableNumber < 1 || globalTableNumber > 10) {
         console.log(`Corrigiendo número de mesa inválido: ${globalTableNumber}`);
         globalTableNumber = 1;
     }
-    
+
     // 5. Verificar que las selecciones de hilera estén en valores válidos
     if (!gameState.rowSelections || !Array.isArray(gameState.rowSelections) || gameState.rowSelections.length !== 4) {
         gameState.rowSelections = [0, 0, 0, 0];
         console.log("Corrigiendo rowSelections inválido");
     }
-    
+
     // 6. Si detectamos alguna corrección, guardar el estado corregido
     if (fichasCorregidas > 0 || inconsistenciasCorregidas > 0) {
         console.log(`Se realizaron correcciones: ${fichasCorregidas} fichas, ${inconsistenciasCorregidas} estados de bloqueo`);
@@ -915,7 +916,7 @@ async function resetBoardOnly() {
     for (const player of gameState.players) {
         // Solo actualizamos el estado de conexión, no modificamos el estado de bloqueo
         player.isConnected = connectedPlayerIds.has(player.id);
-        
+
         // NO modificar estados de bloqueo aquí
     }
 
@@ -969,7 +970,7 @@ async function resetBoardOnly() {
     for (const player of gameState.players) {
         const playerId = player.id;
         const playerUser = getUserById(playerId);
-        
+
         // Verificar que el usuario exista y no esté bloqueado por puntaje
         if (!playerUser || playerUser.isLockedDueToScore) continue;
 
@@ -1032,238 +1033,238 @@ async function resetBoardOnly() {
 async function resetGame() {
     // Crear un nuevo tablero
     const newBoard = generateBoard();
-  
+
     // Inicializar tablero
     gameState.board = newBoard;
     gameState.status = 'playing';
     gameState.currentPlayerIndex = 0;
     gameState.turnStartTime = Date.now();
     gameState.rowSelections = [0, 0, 0, 0];
-    
+
     // Reiniciar selecciones por hilera para cada jugador individualmente
     gameState.playerSelections = {}; // Limpiar completamente todas las selecciones
-  
+
     // Reinicializar las selecciones vacías para cada jugador conectado
     gameState.players.forEach(player => {
-      if (player.id) {
-        gameState.playerSelections[player.id] = {
-          rowSelections: [0, 0, 0, 0],
-          totalSelected: 0
-        };
-      }
+        if (player.id) {
+            gameState.playerSelections[player.id] = {
+                rowSelections: [0, 0, 0, 0],
+                totalSelected: 0
+            };
+        }
     });
-  
+
     // Reiniciar el número de mesa global
     globalTableNumber = 1;
-  
+
     // Reiniciar el puntaje de todos los jugadores a 60,000
     users.forEach(user => {
-      if (!user.isAdmin) {
-        user.prevScore = 60000;
-        user.score = 60000;
-        user.isBlocked = false;
-        user.isLockedDueToScore = false; // Desbloquear por puntaje también
-      }
+        if (!user.isAdmin) {
+            user.prevScore = 60000;
+            user.score = 60000;
+            user.isBlocked = false;
+            user.isLockedDueToScore = false; // Desbloquear por puntaje también
+        }
     });
-  
+
     // Reiniciar contadores de mesas
     for (const userId in playerTableCount) {
-      playerTableCount[userId] = 0;
+        playerTableCount[userId] = 0;
     }
-  
+
     // IMPORTANTE: Verificar qué jugadores están realmente conectados
     const reallyConnectedPlayers = new Set();
-    
+
     // Recorrer las conexiones activas para determinar qué jugadores están realmente conectados
     for (const socketId in connectedSockets) {
-      const userId = connectedSockets[socketId];
-      if (userId) {
-        // Verificar que el socket esté realmente conectado
-        const socket = io.sockets.sockets.get(socketId);
-        if (socket && socket.connected) {
-          reallyConnectedPlayers.add(userId);
+        const userId = connectedSockets[socketId];
+        if (userId) {
+            // Verificar que el socket esté realmente conectado
+            const socket = io.sockets.sockets.get(socketId);
+            if (socket && socket.connected) {
+                reallyConnectedPlayers.add(userId);
+            }
         }
-      }
     }
-    
+
     console.log("Jugadores realmente conectados:", Array.from(reallyConnectedPlayers));
-  
+
     // Actualizar el estado de conexión en la lista de jugadores
     gameState.players.forEach(player => {
-      player.isConnected = reallyConnectedPlayers.has(player.id);
-      
-      // IMPORTANTE: Garantizar que cada jugador en la lista realmente esté desbloqueado
-      const userObject = getUserById(player.id);
-      if (userObject && !userObject.isAdmin) {
-        userObject.isBlocked = false;
-        userObject.isLockedDueToScore = false;
-      }
-      
-      // Actualizar el socketId si es necesario
-      if (!player.isConnected) {
-        player.socketId = null;
-      }
+        player.isConnected = reallyConnectedPlayers.has(player.id);
+
+        // IMPORTANTE: Garantizar que cada jugador en la lista realmente esté desbloqueado
+        const userObject = getUserById(player.id);
+        if (userObject && !userObject.isAdmin) {
+            userObject.isBlocked = false;
+            userObject.isLockedDueToScore = false;
+        }
+
+        // Actualizar el socketId si es necesario
+        if (!player.isConnected) {
+            player.socketId = null;
+        }
     });
-  
+
     // Seleccionar jugador conectado como jugador actual SÓLO si no es admin
     const eligiblePlayers = gameState.players.filter(player => {
-      const userData = getUserById(player.id);
-      return player.isConnected && userData && !userData.isAdmin;
+        const userData = getUserById(player.id);
+        return player.isConnected && userData && !userData.isAdmin;
     });
-  
+
     if (eligiblePlayers.length > 0) {
-      gameState.currentPlayer = eligiblePlayers[0];
-      gameState.currentPlayerIndex = gameState.players.findIndex(p => p.id === eligiblePlayers[0].id);
+        gameState.currentPlayer = eligiblePlayers[0];
+        gameState.currentPlayerIndex = gameState.players.findIndex(p => p.id === eligiblePlayers[0].id);
     } else {
-      gameState.currentPlayer = null;
-      gameState.currentPlayerIndex = 0;
+        gameState.currentPlayer = null;
+        gameState.currentPlayerIndex = 0;
     }
-  
+
     clearTimeout(turnTimer);
-  
+
     // Notificar a todos los clientes con un evento explícito para el estado de conexión
     io.emit('connectionStatusUpdate', {
-      players: gameState.players.map(player => ({
-        id: player.id,
-        isConnected: player.isConnected
-      }))
+        players: gameState.players.map(player => ({
+            id: player.id,
+            isConnected: player.isConnected
+        }))
     });
-  
+
     // Actualizar en Firebase si está disponible
     if (db) {
-      try {
-        // Crear un objeto con todos los updates necesarios
-        const resetUpdates = {
-          'gameState/board': gameState.board,
-          'gameState/status': 'resetCompleted', // Marcar específicamente como resetCompleted
-          'gameState/globalTableNumber': 1,
-          'gameState/rowSelections': [0, 0, 0, 0],
-          'gameState/playerSelections': gameState.playerSelections, // Incluir todas las selecciones reiniciadas
-          'gameState/turnStartTime': Date.now()
-        };
-        
-        // Añadir reset de puntajes de todos los usuarios
-        users.forEach(user => {
-          if (!user.isAdmin) {
-            resetUpdates[`gameState/userScores/${user.id}/score`] = 60000;
-            resetUpdates[`gameState/userScores/${user.id}/prevScore`] = 60000;
-            resetUpdates[`gameState/userScores/${user.id}/isBlocked`] = false;
-            resetUpdates[`gameState/userScores/${user.id}/isLockedDueToScore`] = false;
-            resetUpdates[`gameState/userScores/${user.id}/tablesPlayed`] = 0;
-          }
-        });
-        
-        // Enviar todos los updates de una vez
-        await db.ref().update(resetUpdates);
-        console.log('Reinicio de juego actualizado en Firebase');
-      } catch (firebaseError) {
-        console.error('Error al actualizar reinicio en Firebase:', firebaseError);
-      }
+        try {
+            // Crear un objeto con todos los updates necesarios
+            const resetUpdates = {
+                'gameState/board': gameState.board,
+                'gameState/status': 'resetCompleted', // Marcar específicamente como resetCompleted
+                'gameState/globalTableNumber': 1,
+                'gameState/rowSelections': [0, 0, 0, 0],
+                'gameState/playerSelections': gameState.playerSelections, // Incluir todas las selecciones reiniciadas
+                'gameState/turnStartTime': Date.now()
+            };
+
+            // Añadir reset de puntajes de todos los usuarios
+            users.forEach(user => {
+                if (!user.isAdmin) {
+                    resetUpdates[`gameState/userScores/${user.id}/score`] = 60000;
+                    resetUpdates[`gameState/userScores/${user.id}/prevScore`] = 60000;
+                    resetUpdates[`gameState/userScores/${user.id}/isBlocked`] = false;
+                    resetUpdates[`gameState/userScores/${user.id}/isLockedDueToScore`] = false;
+                    resetUpdates[`gameState/userScores/${user.id}/tablesPlayed`] = 0;
+                }
+            });
+
+            // Enviar todos los updates de una vez
+            await db.ref().update(resetUpdates);
+            console.log('Reinicio de juego actualizado en Firebase');
+        } catch (firebaseError) {
+            console.error('Error al actualizar reinicio en Firebase:', firebaseError);
+        }
     }
-  
+
     // Notificar el estado de resetCompleted a todos los clientes
     io.emit('gameState', {
-      board: gameState.board.map(tile => ({
-        ...tile,
-        value: tile.revealed ? tile.value : null
-      })),
-      currentPlayer: gameState.currentPlayer,
-      players: gameState.players.map(player => ({
-        id: player.id,
-        username: player.username,
-        isBlocked: getUserById(player.id).isBlocked,
-        isLockedDueToScore: getUserById(player.id).isLockedDueToScore,
-        isConnected: player.isConnected
-      })),
-      status: 'resetCompleted', // Usar este estado específico para que los clientes sepan que es un reinicio
-      turnStartTime: gameState.turnStartTime,
-      rowSelections: [0, 0, 0, 0], // Asegurar que se envía con valores reiniciados
-      playerSelections: gameState.playerSelections // Incluir selecciones reiniciadas por jugador
-    });
-  
-    // Enviar evento específico para reinicio completo con conexión verificada
-    io.emit('gameCompletelyReset', {
-      message: "El juego ha sido reiniciado completamente",
-      newBoard: gameState.board,
-      status: 'playing',
-      players: gameState.players.map(player => ({
-        id: player.id,
-        username: player.username,
-        isConnected: player.isConnected // Estado de conexión verificado
-      })),
-      rowSelections: [0, 0, 0, 0], // Agregar las selecciones reiniciadas
-      playerSelections: gameState.playerSelections // Incluir las selecciones reiniciadas
-    });
-  
-    // Enviar puntajes actualizados a todos los jugadores
-    gameState.players.forEach(player => {
-      const user = getUserById(player.id);
-      if (user && player.socketId) {
-        io.to(player.socketId).emit('forceScoreUpdate', user.score);
-        // Notificar el cambio de estado de bloqueo
-        io.to(player.socketId).emit('blockStatusChanged', {
-          isLockedDueToScore: false,
-          isBlocked: false,
-          message: 'El administrador ha reiniciado el juego. Tu puntaje ha sido restablecido a 60,000.'
-        });
-  
-        // Enviar actualización de mesas
-        io.to(player.socketId).emit('tablesUpdate', {
-          tablesPlayed: 0,
-          currentTable: 1,
-          maxReached: false,
-          lockReason: ''
-        });
-      }
-    });
-  
-    // Notificar a todos los jugadores del reinicio
-    io.emit('boardReset', {
-      message: "El administrador ha reiniciado el juego. Todos los puntajes han sido restablecidos a 60,000.",
-      newTableNumber: 1,
-      newBoard: gameState.board
-    });
-  
-    // Enviar mensaje específico sobre el reinicio de las selecciones
-    io.emit('gameResetMessage', {
-      message: "Todas las selecciones por hilera han sido reiniciadas.",
-      command: "resetComplete"
-    });
-  
-    // Cambiar el estado a 'playing' después de un pequeño retraso para dar tiempo a los clientes a procesar
-    setTimeout(() => {
-      gameState.status = 'playing';
-      if (gameState.players.length > 0) {
-        startPlayerTurn();
-      }
-      // Notificar que ahora estamos en modo de juego
-      io.emit('gameState', {
-        status: 'playing',
-        currentPlayer: gameState.currentPlayer,
-        rowSelections: [0, 0, 0, 0] // Enviar explícitamente las selecciones reiniciadas
-      });
-      
-      // NUEVO: Forzar actualización de estado para todos
-      io.emit('forceGameStateRefresh', {
-        board: gameState.board,
+        board: gameState.board.map(tile => ({
+            ...tile,
+            value: tile.revealed ? tile.value : null
+        })),
         currentPlayer: gameState.currentPlayer,
         players: gameState.players.map(player => ({
-          id: player.id,
-          username: player.username,
-          isBlocked: getUserById(player.id).isBlocked,
-          isLockedDueToScore: getUserById(player.id).isLockedDueToScore,
-          isConnected: player.isConnected
+            id: player.id,
+            username: player.username,
+            isBlocked: getUserById(player.id).isBlocked,
+            isLockedDueToScore: getUserById(player.id).isLockedDueToScore,
+            isConnected: player.isConnected
         })),
+        status: 'resetCompleted', // Usar este estado específico para que los clientes sepan que es un reinicio
+        turnStartTime: gameState.turnStartTime,
+        rowSelections: [0, 0, 0, 0], // Asegurar que se envía con valores reiniciados
+        playerSelections: gameState.playerSelections // Incluir selecciones reiniciadas por jugador
+    });
+
+    // Enviar evento específico para reinicio completo con conexión verificada
+    io.emit('gameCompletelyReset', {
+        message: "El juego ha sido reiniciado completamente",
+        newBoard: gameState.board,
         status: 'playing',
-        rowSelections: [0, 0, 0, 0], // Agregar explícitamente las selecciones reiniciadas
-        playerSelections: gameState.playerSelections, // Incluir todas las selecciones reiniciadas
-        canSelectTiles: true // Asegurar que los jugadores puedan seleccionar nuevamente
-      });
+        players: gameState.players.map(player => ({
+            id: player.id,
+            username: player.username,
+            isConnected: player.isConnected // Estado de conexión verificado
+        })),
+        rowSelections: [0, 0, 0, 0], // Agregar las selecciones reiniciadas
+        playerSelections: gameState.playerSelections // Incluir las selecciones reiniciadas
+    });
+
+    // Enviar puntajes actualizados a todos los jugadores
+    gameState.players.forEach(player => {
+        const user = getUserById(player.id);
+        if (user && player.socketId) {
+            io.to(player.socketId).emit('forceScoreUpdate', user.score);
+            // Notificar el cambio de estado de bloqueo
+            io.to(player.socketId).emit('blockStatusChanged', {
+                isLockedDueToScore: false,
+                isBlocked: false,
+                message: 'El administrador ha reiniciado el juego. Tu puntaje ha sido restablecido a 60,000.'
+            });
+
+            // Enviar actualización de mesas
+            io.to(player.socketId).emit('tablesUpdate', {
+                tablesPlayed: 0,
+                currentTable: 1,
+                maxReached: false,
+                lockReason: ''
+            });
+        }
+    });
+
+    // Notificar a todos los jugadores del reinicio
+    io.emit('boardReset', {
+        message: "El administrador ha reiniciado el juego. Todos los puntajes han sido restablecidos a 60,000.",
+        newTableNumber: 1,
+        newBoard: gameState.board
+    });
+
+    // Enviar mensaje específico sobre el reinicio de las selecciones
+    io.emit('gameResetMessage', {
+        message: "Todas las selecciones por hilera han sido reiniciadas.",
+        command: "resetComplete"
+    });
+
+    // Cambiar el estado a 'playing' después de un pequeño retraso para dar tiempo a los clientes a procesar
+    setTimeout(() => {
+        gameState.status = 'playing';
+        if (gameState.players.length > 0) {
+            startPlayerTurn();
+        }
+        // Notificar que ahora estamos en modo de juego
+        io.emit('gameState', {
+            status: 'playing',
+            currentPlayer: gameState.currentPlayer,
+            rowSelections: [0, 0, 0, 0] // Enviar explícitamente las selecciones reiniciadas
+        });
+
+        // NUEVO: Forzar actualización de estado para todos
+        io.emit('forceGameStateRefresh', {
+            board: gameState.board,
+            currentPlayer: gameState.currentPlayer,
+            players: gameState.players.map(player => ({
+                id: player.id,
+                username: player.username,
+                isBlocked: getUserById(player.id).isBlocked,
+                isLockedDueToScore: getUserById(player.id).isLockedDueToScore,
+                isConnected: player.isConnected
+            })),
+            status: 'playing',
+            rowSelections: [0, 0, 0, 0], // Agregar explícitamente las selecciones reiniciadas
+            playerSelections: gameState.playerSelections, // Incluir todas las selecciones reiniciadas
+            canSelectTiles: true // Asegurar que los jugadores puedan seleccionar nuevamente
+        });
     }, 2000);
-  
+
     // Guardar estado después del reset
     await saveGameState();
-  }
+}
 
 // Función para sincronizar el estado del jugador - mejorada para consistencia
 function syncPlayerState(userId, socketId) {
@@ -1314,11 +1315,11 @@ function startPlayerTurn() {
     let eligiblePlayers = gameState.players.filter(player => {
         const userData = getUserById(player.id);
         // Verificar que el jugador esté conectado, no bloqueado y no sea admin
-        return player.isConnected && 
-                userData && 
-                !userData.isBlocked && 
-                !userData.isLockedDueToScore && 
-                !userData.isAdmin;
+        return player.isConnected &&
+            userData &&
+            !userData.isBlocked &&
+            !userData.isLockedDueToScore &&
+            !userData.isAdmin;
     });
 
     if (eligiblePlayers.length === 0) {
@@ -1563,12 +1564,12 @@ io.on('connection', (socket) => {
 
         // Verificar si el usuario está realmente bloqueado por mesas
         const isReallyBlocked = checkTableLimit(userId);
-        
+
         // Si está en la mesa 10 y bloqueado, pero debería poder jugar, desbloquearlo
         if (globalTableNumber === 10 && isReallyBlocked && playerTableCount[userId] <= MAX_TABLES_PER_DAY) {
             console.log(`Corrigiendo bloqueo incorrecto en mesa 10 para ${user.username}`);
             playerTableCount[userId] = Math.min(playerTableCount[userId], MAX_TABLES_PER_DAY - 1);
-            
+
             // Notificar al usuario
             socket.emit('tablesUpdate', {
                 tablesPlayed: playerTableCount[userId],
@@ -1576,16 +1577,16 @@ io.on('connection', (socket) => {
                 maxReached: false,
                 lockReason: ''
             });
-            
+
             // Actualizar en Firebase
             if (db) {
                 queueGameStateChange(`gameState/userScores/${userId}/tablesPlayed`, playerTableCount[userId]);
             }
-            
+
             // Guardar estado corregido
             await saveGameState();
         }
-        
+
         // Siempre sincronizar el estado actual
         syncPlayerState(userId, socket.id);
     });
@@ -1593,13 +1594,13 @@ io.on('connection', (socket) => {
     // Evento para reiniciar las selecciones de hilera si hay problemas
     socket.on('resetRowSelections', ({ userId }) => {
         if (!userId) return;
-        
+
         // Verificar que el usuario exista
         const user = getUserById(userId);
         if (!user) return;
-        
+
         console.log(`Reiniciando selecciones de hilera para ${user.username}`);
-        
+
         // Reiniciar selecciones para este usuario
         if (gameState.playerSelections[userId]) {
             gameState.playerSelections[userId].rowSelections = [0, 0, 0, 0];
@@ -1607,12 +1608,12 @@ io.on('connection', (socket) => {
         } else {
             initPlayerSelections(userId);
         }
-        
+
         // Sincronizar con el cliente
         socket.emit('gameState', {
             rowSelections: [0, 0, 0, 0]
         });
-        
+
         // Actualizar en Firebase
         if (db) {
             queueGameStateChange(`gameState/playerSelections/${userId}/rowSelections`, [0, 0, 0, 0]);
@@ -1883,55 +1884,55 @@ io.on('connection', (socket) => {
     });
 
     // Añade este evento junto a los demás socket.on(...) del servidor
-socket.on('unlockAllTables', async (_, callback) => {
-    console.log("Solicitado desbloqueo de emergencia para todas las mesas");
-    
-    // Reiniciar contadores para todos los jugadores
-    Object.keys(playerTableCount).forEach(userId => {
-      playerTableCount[userId] = 0;
-    });
-  
-    // Actualizar en Firebase si está disponible
-    if (db) {
-      const updates = {};
-      Object.keys(playerTableCount).forEach(userId => {
-        updates[`gameState/userScores/${userId}/tablesPlayed`] = 0;
-      });
-  
-      if (Object.keys(updates).length > 0) {
-        try {
-          await db.ref().update(updates);
-          console.log('Contadores de mesa reiniciados en Firebase');
-        } catch (error) {
-          console.error('Error al reiniciar contadores de mesa en Firebase:', error);
-        }
-      }
-    }
-  
-    // Notificar a todos los clientes
-    io.emit('tablesUnlocked', { message: 'Se han desbloqueado todas las mesas.' });
-    
-    // Enviar actualización de tableros a todos los jugadores
-    for (const player of gameState.players) {
-      if (player.socketId && player.isConnected) {
-        io.to(player.socketId).emit('tablesUpdate', {
-          tablesPlayed: 0,
-          currentTable: globalTableNumber,
-          maxReached: false,
-          lockReason: ''
+    socket.on('unlockAllTables', async (_, callback) => {
+        console.log("Solicitado desbloqueo de emergencia para todas las mesas");
+
+        // Reiniciar contadores para todos los jugadores
+        Object.keys(playerTableCount).forEach(userId => {
+            playerTableCount[userId] = 0;
         });
-      }
-    }
-    
-    console.log('Todas las mesas desbloqueadas correctamente');
-    
-    // Guardar estado
-    await saveGameState();
-    
-    if (callback) {
-      callback({ success: true, message: 'Todas las mesas desbloqueadas correctamente' });
-    }
-  });
+
+        // Actualizar en Firebase si está disponible
+        if (db) {
+            const updates = {};
+            Object.keys(playerTableCount).forEach(userId => {
+                updates[`gameState/userScores/${userId}/tablesPlayed`] = 0;
+            });
+
+            if (Object.keys(updates).length > 0) {
+                try {
+                    await db.ref().update(updates);
+                    console.log('Contadores de mesa reiniciados en Firebase');
+                } catch (error) {
+                    console.error('Error al reiniciar contadores de mesa en Firebase:', error);
+                }
+            }
+        }
+
+        // Notificar a todos los clientes
+        io.emit('tablesUnlocked', { message: 'Se han desbloqueado todas las mesas.' });
+
+        // Enviar actualización de tableros a todos los jugadores
+        for (const player of gameState.players) {
+            if (player.socketId && player.isConnected) {
+                io.to(player.socketId).emit('tablesUpdate', {
+                    tablesPlayed: 0,
+                    currentTable: globalTableNumber,
+                    maxReached: false,
+                    lockReason: ''
+                });
+            }
+        }
+
+        console.log('Todas las mesas desbloqueadas correctamente');
+
+        // Guardar estado
+        await saveGameState();
+
+        if (callback) {
+            callback({ success: true, message: 'Todas las mesas desbloqueadas correctamente' });
+        }
+    });
 
     // Seleccionar una ficha - Actualizada para bloqueo por límite de puntos
     socket.on('selectTile', async ({ tileIndex, currentScore }) => {
@@ -2006,7 +2007,7 @@ socket.on('unlockAllTables', async (_, callback) => {
         if (gameState.board[tileIndex] && gameState.board[tileIndex].revealed) {
             console.log(`IGNORANDO selección repetida para ficha ${tileIndex}`);
             socket.emit('tileSelectError', { message: 'Esta ficha ya fue seleccionada' });
-            
+
             // NUEVO: Forzar sincronización del tablero para corregir posibles inconsistencias
             socket.emit('forceGameStateRefresh', {
                 board: gameState.board,
@@ -2524,132 +2525,132 @@ socket.on('unlockAllTables', async (_, callback) => {
     });
 
     // Evento para cambiar el nombre de usuario (solo para admins)
-socket.on('changeUsername', async ({ userId, newUsername }, callback) => {
-    const adminId = connectedSockets[socket.id];
-    if (!adminId) {
-        callback({ success: false, message: 'No autorizado' });
-        return;
-    }
+    socket.on('changeUsername', async ({ userId, newUsername }, callback) => {
+        const adminId = connectedSockets[socket.id];
+        if (!adminId) {
+            callback({ success: false, message: 'No autorizado' });
+            return;
+        }
 
-    const admin = getUserById(adminId);
-    if (!admin || !admin.isAdmin) {
-        callback({ success: false, message: 'No autorizado' });
-        return;
-    }
+        const admin = getUserById(adminId);
+        if (!admin || !admin.isAdmin) {
+            callback({ success: false, message: 'No autorizado' });
+            return;
+        }
 
-    const targetUser = getUserById(userId);
-    if (!targetUser) {
-        callback({ success: false, message: 'Usuario no encontrado' });
-        return;
-    }
+        const targetUser = getUserById(userId);
+        if (!targetUser) {
+            callback({ success: false, message: 'Usuario no encontrado' });
+            return;
+        }
 
-    // Verificar que el nuevo nombre no esté en uso
-    const existingUser = users.find(u => u.username.toLowerCase() === newUsername.toLowerCase() && u.id !== userId);
-    if (existingUser) {
-        callback({ success: false, message: 'Este nombre de usuario ya está en uso' });
-        return;
-    }
+        // Verificar que el nuevo nombre no esté en uso
+        const existingUser = users.find(u => u.username.toLowerCase() === newUsername.toLowerCase() && u.id !== userId);
+        if (existingUser) {
+            callback({ success: false, message: 'Este nombre de usuario ya está en uso' });
+            return;
+        }
 
-    // Cambiar el nombre de usuario
-    const oldUsername = targetUser.username;
-    targetUser.username = newUsername;
+        // Cambiar el nombre de usuario
+        const oldUsername = targetUser.username;
+        targetUser.username = newUsername;
 
-    // Actualizar en la lista de jugadores activos
-    const playerIndex = gameState.players.findIndex(p => p.id === userId);
-    if (playerIndex !== -1) {
-        gameState.players[playerIndex].username = newUsername;
-    }
+        // Actualizar en la lista de jugadores activos
+        const playerIndex = gameState.players.findIndex(p => p.id === userId);
+        if (playerIndex !== -1) {
+            gameState.players[playerIndex].username = newUsername;
+        }
 
-    // Actualizar en Firebase si está disponible
-    if (db) {
-        try {
-            await db.ref(`gameState/userScores/${userId}/username`).set(newUsername);
-            if (playerIndex !== -1) {
-                await db.ref(`gameState/players/${playerIndex}/username`).set(newUsername);
+        // Actualizar en Firebase si está disponible
+        if (db) {
+            try {
+                await db.ref(`gameState/userScores/${userId}/username`).set(newUsername);
+                if (playerIndex !== -1) {
+                    await db.ref(`gameState/players/${playerIndex}/username`).set(newUsername);
+                }
+                console.log(`Nombre de usuario cambiado de ${oldUsername} a ${newUsername}`);
+            } catch (error) {
+                console.error('Error al actualizar nombre de usuario en Firebase:', error);
             }
-            console.log(`Nombre de usuario cambiado de ${oldUsername} a ${newUsername}`);
-        } catch (error) {
-            console.error('Error al actualizar nombre de usuario en Firebase:', error);
         }
-    }
 
-    // Notificar al usuario si está conectado
-    const playerSocketId = gameState.players.find(p => p.id === userId)?.socketId;
-    if (playerSocketId) {
-        io.to(playerSocketId).emit('usernameChanged', {
-            newUsername: newUsername,
-            message: `Tu nombre de usuario ha sido cambiado a: ${newUsername}`
-        });
-    }
-
-    // Actualizar lista de jugadores para todos
-    io.emit('playersUpdate', users.filter(u => !u.isAdmin).map(u => ({
-        id: u.id,
-        username: u.username,
-        score: u.score,
-        isBlocked: u.isBlocked,
-        isLockedDueToScore: u.isLockedDueToScore
-    })));
-
-    // Guardar estado
-    await saveGameState();
-
-    callback({ success: true, message: `Nombre cambiado de ${oldUsername} a ${newUsername}` });
-});
-
-// Evento para cambiar la contraseña (solo para admins)
-socket.on('changePassword', async ({ userId, newPassword }, callback) => {
-    const adminId = connectedSockets[socket.id];
-    if (!adminId) {
-        callback({ success: false, message: 'No autorizado' });
-        return;
-    }
-
-    const admin = getUserById(adminId);
-    if (!admin || !admin.isAdmin) {
-        callback({ success: false, message: 'No autorizado' });
-        return;
-    }
-
-    const targetUser = getUserById(userId);
-    if (!targetUser) {
-        callback({ success: false, message: 'Usuario no encontrado' });
-        return;
-    }
-
-    // Validar longitud mínima de contraseña
-    if (newPassword.length < 6) {
-        callback({ success: false, message: 'La contraseña debe tener al menos 6 caracteres' });
-        return;
-    }
-
-    // Cambiar la contraseña
-    targetUser.password = newPassword;
-
-    // Actualizar en Firebase si está disponible
-    if (db) {
-        try {
-            await db.ref(`gameState/userScores/${userId}/passwordChanged`).set(true);
-            await db.ref(`gameState/userScores/${userId}/passwordChangedAt`).set(Date.now());
-            console.log(`Contraseña actualizada para ${targetUser.username}`);
-        } catch (error) {
-            console.error('Error al registrar cambio de contraseña en Firebase:', error);
+        // Notificar al usuario si está conectado
+        const playerSocketId = gameState.players.find(p => p.id === userId)?.socketId;
+        if (playerSocketId) {
+            io.to(playerSocketId).emit('usernameChanged', {
+                newUsername: newUsername,
+                message: `Tu nombre de usuario ha sido cambiado a: ${newUsername}`
+            });
         }
-    }
 
-    // Notificar al usuario si está conectado
-    const playerSocketId = gameState.players.find(p => p.id === userId)?.socketId;
-    if (playerSocketId) {
-        io.to(playerSocketId).emit('passwordChanged', {
-            message: 'Tu contraseña ha sido actualizada por el administrador. Deberás usar la nueva contraseña en tu próximo inicio de sesión.'
-        });
-    }
+        // Actualizar lista de jugadores para todos
+        io.emit('playersUpdate', users.filter(u => !u.isAdmin).map(u => ({
+            id: u.id,
+            username: u.username,
+            score: u.score,
+            isBlocked: u.isBlocked,
+            isLockedDueToScore: u.isLockedDueToScore
+        })));
 
-    // Guardar estado (aunque las contraseñas no se guardan en el archivo de estado por seguridad)
-    await saveGameState();
+        // Guardar estado
+        await saveGameState();
 
-    callback({ success: true, message: `Contraseña actualizada para ${targetUser.username}` });
-});
+        callback({ success: true, message: `Nombre cambiado de ${oldUsername} a ${newUsername}` });
+    });
+
+    // Evento para cambiar la contraseña (solo para admins)
+    socket.on('changePassword', async ({ userId, newPassword }, callback) => {
+        const adminId = connectedSockets[socket.id];
+        if (!adminId) {
+            callback({ success: false, message: 'No autorizado' });
+            return;
+        }
+
+        const admin = getUserById(adminId);
+        if (!admin || !admin.isAdmin) {
+            callback({ success: false, message: 'No autorizado' });
+            return;
+        }
+
+        const targetUser = getUserById(userId);
+        if (!targetUser) {
+            callback({ success: false, message: 'Usuario no encontrado' });
+            return;
+        }
+
+        // Validar longitud mínima de contraseña
+        if (newPassword.length < 6) {
+            callback({ success: false, message: 'La contraseña debe tener al menos 6 caracteres' });
+            return;
+        }
+
+        // Cambiar la contraseña
+        targetUser.password = newPassword;
+
+        // Actualizar en Firebase si está disponible
+        if (db) {
+            try {
+                await db.ref(`gameState/userScores/${userId}/passwordChanged`).set(true);
+                await db.ref(`gameState/userScores/${userId}/passwordChangedAt`).set(Date.now());
+                console.log(`Contraseña actualizada para ${targetUser.username}`);
+            } catch (error) {
+                console.error('Error al registrar cambio de contraseña en Firebase:', error);
+            }
+        }
+
+        // Notificar al usuario si está conectado
+        const playerSocketId = gameState.players.find(p => p.id === userId)?.socketId;
+        if (playerSocketId) {
+            io.to(playerSocketId).emit('passwordChanged', {
+                message: 'Tu contraseña ha sido actualizada por el administrador. Deberás usar la nueva contraseña en tu próximo inicio de sesión.'
+            });
+        }
+
+        // Guardar estado (aunque las contraseñas no se guardan en el archivo de estado por seguridad)
+        await saveGameState();
+
+        callback({ success: true, message: `Contraseña actualizada para ${targetUser.username}` });
+    });
 
     // Reiniciar juego (solo para admins)
     socket.on('resetGame', async (callback) => {
@@ -2940,7 +2941,7 @@ socket.on('changePassword', async ({ userId, newPassword }, callback) => {
         // Ya no invocamos resetBoardOnly() ni incrementamos el contador
         // Solo enviamos un mensaje al usuario
         socket.emit('message', 'Has completado tus selecciones. Esperando a que se revelen todas las fichas del tablero.');
-        
+
         // Verificar estados de bloqueo para detectar inconsistencias
         verifyBlockingStates();
 
@@ -3085,13 +3086,30 @@ app.get('/game-state-summary', (req, res) => {
 
 // Logs de inicio
 console.log('Entorno:', process.env.NODE_ENV);
-console.log('URL del cliente:', process.env.CLIENT_URL);
+console.log('URL del cliente:', process.env.CLIENT_URL || 'https://juego-memoria-cliente2.onrender.com');
 console.log('Firebase:', db ? 'Configurado' : 'No configurado');
+console.log('Base de datos Firebase:', 'https://juego-memoria-tercero-default-rtdb.firebaseio.com');
 
 // Iniciar servidor
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`Servidor ejecutándose en el puerto ${PORT}`);
+    console.log('=================================');
+    console.log('SERVIDOR 2 - JUEGO MEMORIA TERCERO');
+    console.log('=================================');
+    console.log('Usuarios disponibles:');
+    console.log('- Zorro (astuto741)');
+    console.log('- Tigre (feroz852)');
+    console.log('- Aguila (vuela963)');
+    console.log('- Lobo (aulla159)');
+    console.log('- Pantera (negra753)');
+    console.log('- Halcon (rapido426)');
+    console.log('- Jaguar (selvaje817)');
+    console.log('- Cobra (sigilosa294)');
+    console.log('- Oso (fuerte685)');
+    console.log('- Puma (montaña372)');
+    console.log('- Admin (admin1998)');
+    console.log('=================================');
 
     // Verificar Firebase al inicio
     if (db) {
@@ -3103,5 +3121,49 @@ server.listen(PORT, () => {
 
 // Ruta básica para comprobar que el servidor está funcionando
 app.get('/', (req, res) => {
-    res.send('Servidor del juego de memoria funcionando');
+    res.send('Servidor del juego de memoria (Servidor 2 - juego-memoria-tercero) funcionando correctamente');
 });
+
+// Manejo de errores no capturados
+process.on('uncaughtException', (error) => {
+    console.error('Error no capturado:', error);
+    // Intentar guardar el estado antes de salir
+    saveGameState().then(() => {
+        console.log('Estado guardado de emergencia');
+    }).catch((err) => {
+        console.error('Error al guardar estado de emergencia:', err);
+    });
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Promesa rechazada no manejada:', reason);
+});
+
+// Manejo graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM recibido, cerrando servidor gracefully...');
+
+    try {
+        // Guardar estado final
+        await saveGameState();
+        console.log('Estado final guardado');
+
+        // Cerrar servidor
+        server.close(() => {
+            console.log('Servidor cerrado');
+            process.exit(0);
+        });
+
+        // Forzar cierre después de 10 segundos
+        setTimeout(() => {
+            console.error('No se pudo cerrar el servidor gracefully, forzando cierre...');
+            process.exit(1);
+        }, 10000);
+    } catch (error) {
+        console.error('Error durante el cierre:', error);
+        process.exit(1);
+    }
+});
+
+// Exportar el servidor para testing si es necesario
+module.exports = { app, server };
