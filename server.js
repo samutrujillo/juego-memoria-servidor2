@@ -470,12 +470,24 @@ async function saveGameState() {
                 isBlocked: user.isBlocked || false,
                 isLockedDueToScore: user.isLockedDueToScore || false,
                 tablesPlayed: playerTableCount[user.id] || 0,
-                username: user.username // Añadir el username para referencia
+                username: user.username, // IMPORTANTE: Incluir el username actualizado
+                password: user.password  // IMPORTANTE: Incluir la contraseña actualizada
             };
             return obj;
         }, {}),
         playerGameStates: playerGameState || {},
-        timestamp: Date.now() // Añadir timestamp para verificación
+        timestamp: Date.now(), // Añadir timestamp para verificación
+        // NUEVO: Guardar el array completo de usuarios modificados
+        modifiedUsers: users.map(user => ({
+            id: user.id,
+            username: user.username,
+            password: user.password,
+            score: user.score,
+            prevScore: user.prevScore,
+            isAdmin: user.isAdmin,
+            isBlocked: user.isBlocked,
+            isLockedDueToScore: user.isLockedDueToScore
+        }))
     };
 
     const jsonData = JSON.stringify(stateToSave, null, 2);
@@ -616,6 +628,27 @@ async function loadGameState() {
 
     // 3. Aplicar el estado cargado si existe
     if (loadedState) {
+        // NUEVO: Cargar usuarios modificados si existen
+        if (loadedState.modifiedUsers && Array.isArray(loadedState.modifiedUsers)) {
+            console.log('Cargando usuarios modificados desde el estado guardado...');
+
+            // Actualizar el array de usuarios con los datos guardados
+            loadedState.modifiedUsers.forEach(savedUser => {
+                const userIndex = users.findIndex(u => u.id === savedUser.id);
+                if (userIndex !== -1) {
+                    // Actualizar solo los campos que pueden cambiar
+                    users[userIndex].username = savedUser.username;
+                    users[userIndex].password = savedUser.password;
+                    users[userIndex].score = savedUser.score;
+                    users[userIndex].prevScore = savedUser.prevScore;
+                    users[userIndex].isBlocked = savedUser.isBlocked;
+                    users[userIndex].isLockedDueToScore = savedUser.isLockedDueToScore;
+
+                    console.log(`Usuario ${savedUser.id} actualizado: username=${savedUser.username}`);
+                }
+            });
+        }
+
         // Restaurar el estado del juego completo
         if (loadedState.board) {
             gameState.board = loadedState.board;
@@ -645,6 +678,7 @@ async function loadGameState() {
             Object.assign(playerGameState, loadedState.playerGameStates);
         }
 
+        // Cargar puntuaciones y estados de usuario
         if (loadedState.userScores) {
             for (const userId in loadedState.userScores) {
                 const user = users.find(u => u.id === userId);
@@ -653,6 +687,14 @@ async function loadGameState() {
                     user.prevScore = loadedState.userScores[userId].prevScore || user.score;
                     user.isBlocked = loadedState.userScores[userId].isBlocked;
                     user.isLockedDueToScore = loadedState.userScores[userId].isLockedDueToScore || false;
+
+                    // IMPORTANTE: Cargar también username y password actualizados
+                    if (loadedState.userScores[userId].username) {
+                        user.username = loadedState.userScores[userId].username;
+                    }
+                    if (loadedState.userScores[userId].password) {
+                        user.password = loadedState.userScores[userId].password;
+                    }
 
                     if (loadedState.userScores[userId].tablesPlayed !== undefined) {
                         playerTableCount[userId] = loadedState.userScores[userId].tablesPlayed;
@@ -1389,7 +1431,8 @@ function startPlayerTurn() {
         }, 6000);
     }
 
-    const playerSelections = initPlayerSelections(gameState.currentPlayer.id);
+    const playerSelections = initPlayerSelections
+        (gameState.currentPlayer.id);
     gameState.rowSelections = [...playerSelections.rowSelections];
     gameState.status = 'playing';
     gameState.turnStartTime = Date.now();
@@ -2139,7 +2182,6 @@ io.on('connection', (socket) => {
             timestamp: Date.now(),
             isRevealed: true // Confirmar explícitamente que está revelada
         });
-
         socket.emit('forceScoreUpdate', newScore);
 
         // Verificar si el jugador completó todas sus selecciones permitidas
@@ -2524,7 +2566,7 @@ io.on('connection', (socket) => {
         callback({ success: true });
     });
 
-    // Evento para cambiar el nombre de usuario (solo para admins)
+    // Evento para cambiar el nombre de usuario (solo para admins) - MEJORADO
     socket.on('changeUsername', async ({ userId, newUsername }, callback) => {
         const adminId = connectedSockets[socket.id];
         if (!adminId) {
@@ -2564,15 +2606,48 @@ io.on('connection', (socket) => {
         // Actualizar en Firebase si está disponible
         if (db) {
             try {
+                // Guardar tanto en userScores como en modifiedUsers
                 await db.ref(`gameState/userScores/${userId}/username`).set(newUsername);
+
+                // Actualizar la lista de usuarios modificados
+                const modifiedUsersSnapshot = await db.ref('gameState/modifiedUsers').once('value');
+                let modifiedUsers = modifiedUsersSnapshot.val() || [];
+
+                // Convertir a array si no lo es
+                if (!Array.isArray(modifiedUsers)) {
+                    modifiedUsers = Object.values(modifiedUsers);
+                }
+
+                const userIndex = modifiedUsers.findIndex(u => u.id === userId);
+
+                if (userIndex !== -1) {
+                    modifiedUsers[userIndex].username = newUsername;
+                } else {
+                    modifiedUsers.push({
+                        id: userId,
+                        username: newUsername,
+                        password: targetUser.password,
+                        score: targetUser.score,
+                        prevScore: targetUser.prevScore,
+                        isAdmin: targetUser.isAdmin,
+                        isBlocked: targetUser.isBlocked,
+                        isLockedDueToScore: targetUser.isLockedDueToScore
+                    });
+                }
+
+                await db.ref('gameState/modifiedUsers').set(modifiedUsers);
+
                 if (playerIndex !== -1) {
                     await db.ref(`gameState/players/${playerIndex}/username`).set(newUsername);
                 }
-                console.log(`Nombre de usuario cambiado de ${oldUsername} a ${newUsername}`);
+                console.log(`Nombre de usuario cambiado de ${oldUsername} a ${newUsername} y guardado en Firebase`);
             } catch (error) {
                 console.error('Error al actualizar nombre de usuario en Firebase:', error);
             }
         }
+
+        // IMPORTANTE: Guardar estado completo inmediatamente
+        await saveGameState();
 
         // Notificar al usuario si está conectado
         const playerSocketId = gameState.players.find(p => p.id === userId)?.socketId;
@@ -2592,13 +2667,11 @@ io.on('connection', (socket) => {
             isLockedDueToScore: u.isLockedDueToScore
         })));
 
-        // Guardar estado
-        await saveGameState();
-
+        console.log(`Cambio de nombre completado y persistido: ${oldUsername} -> ${newUsername}`);
         callback({ success: true, message: `Nombre cambiado de ${oldUsername} a ${newUsername}` });
     });
 
-    // Evento para cambiar la contraseña (solo para admins)
+    // Evento para cambiar la contraseña (solo para admins) - MEJORADO
     socket.on('changePassword', async ({ userId, newPassword }, callback) => {
         const adminId = connectedSockets[socket.id];
         if (!adminId) {
@@ -2630,13 +2703,47 @@ io.on('connection', (socket) => {
         // Actualizar en Firebase si está disponible
         if (db) {
             try {
+                // Guardar tanto en userScores como en modifiedUsers
+                await db.ref(`gameState/userScores/${userId}/password`).set(newPassword);
                 await db.ref(`gameState/userScores/${userId}/passwordChanged`).set(true);
                 await db.ref(`gameState/userScores/${userId}/passwordChangedAt`).set(Date.now());
-                console.log(`Contraseña actualizada para ${targetUser.username}`);
+
+                // Actualizar la lista de usuarios modificados
+                const modifiedUsersSnapshot = await db.ref('gameState/modifiedUsers').once('value');
+                let modifiedUsers = modifiedUsersSnapshot.val() || [];
+
+                // Convertir a array si no lo es
+                if (!Array.isArray(modifiedUsers)) {
+                    modifiedUsers = Object.values(modifiedUsers);
+                }
+
+                const userIndex = modifiedUsers.findIndex(u => u.id === userId);
+
+                if (userIndex !== -1) {
+                    modifiedUsers[userIndex].password = newPassword;
+                } else {
+                    modifiedUsers.push({
+                        id: userId,
+                        username: targetUser.username,
+                        password: newPassword,
+                        score: targetUser.score,
+                        prevScore: targetUser.prevScore,
+                        isAdmin: targetUser.isAdmin,
+                        isBlocked: targetUser.isBlocked,
+                        isLockedDueToScore: targetUser.isLockedDueToScore
+                    });
+                }
+
+                await db.ref('gameState/modifiedUsers').set(modifiedUsers);
+
+                console.log(`Contraseña actualizada para ${targetUser.username} y guardada en Firebase`);
             } catch (error) {
                 console.error('Error al registrar cambio de contraseña en Firebase:', error);
             }
         }
+
+        // IMPORTANTE: Guardar estado completo inmediatamente
+        await saveGameState();
 
         // Notificar al usuario si está conectado
         const playerSocketId = gameState.players.find(p => p.id === userId)?.socketId;
@@ -2646,9 +2753,7 @@ io.on('connection', (socket) => {
             });
         }
 
-        // Guardar estado (aunque las contraseñas no se guardan en el archivo de estado por seguridad)
-        await saveGameState();
-
+        console.log(`Cambio de contraseña completado y persistido para: ${targetUser.username}`);
         callback({ success: true, message: `Contraseña actualizada para ${targetUser.username}` });
     });
 
@@ -3078,7 +3183,8 @@ app.get('/game-state-summary', (req, res) => {
         connectedPlayers: gameState.players.filter(p => p.isConnected).length,
         revealedTiles: gameState.board.filter(t => t.revealed).length,
         tableNumber: globalTableNumber,
-        lastSaved: new Date().toISOString()
+        lastSaved: new Date().toISOString(),
+        usernames: users.map(u => ({ id: u.id, username: u.username, isAdmin: u.isAdmin }))
     };
 
     res.json(summary);
